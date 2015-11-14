@@ -73,6 +73,5 @@ Session.vim
 [Ii]nclude
 [Ll]ib
 [Ll]ocal
-[Ss]cripts
 pyvenv.cfg
 pip-selfcheck.json

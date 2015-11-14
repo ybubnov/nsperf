@@ -1,0 +1,68 @@
+#!/usr/bin/env python2
+
+import os
+
+import mininet
+import mininet.net
+import mininet.topo
+import mininet.node
+import mininet.log
+import mininet.cli
+
+
+class StarTopo(mininet.topo.Topo):
+    """ Simple star topology with one
+        Linc-Switch and three hosts.
+    """
+
+    def __init__(self, **kwargs):
+        super(StarTopo, self).__init__(**kwargs)
+
+        s1 = self.addSwitch("s1", protocols="OpenFlow13")
+
+        h1 = self.addHost("h1", ip="10.0.0.1")
+        h2 = self.addHost("h2", ip="10.0.0.2")
+        h3 = self.addHost("h3", ip="10.0.0.3")
+
+        self.addLink(s1, h1, port1=1)
+        self.addLink(s1, h2, port1=2)
+        self.addLink(s1, h3, port1=3)
+
+
+def set_traffic_generators(network):
+    """ Run neverending nsperf to produce packet-in
+        messages to controller.
+    """
+    cmd = ("nsperf -t PTR "
+           "--local-address 10.0.0.{0} "
+           "--remote-address 10.0.0.254 &")
+
+    for host in network.hosts:
+        addr = host.name.replace("h", "")
+        host.sendCmd(cmd.format(addr))
+
+
+def main():
+    """ Build topology and run cli.
+    """
+    mininet.log.setLogLevel("info")
+
+    net = mininet.net.Mininet(
+        topo=StarTopo(),
+        controller=None)
+
+    net.addController(
+        ip="127.0.0.1",
+        controller=mininet.node.RemoteController)
+
+    set_traffic_generators(net)
+
+    net.start()
+    os.system("ovs-vsctl set bridge s1 protocols=OpenFlow13")
+
+    mininet.cli.CLI(net)
+    net.stop()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 
+import argparse
 import os
 
 import mininet
@@ -45,6 +46,23 @@ def set_traffic_generators(network):
 def main():
     """ Build topology and run cli.
     """
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-a",
+        "--address",
+        type=str,
+        default="127.0.0.1",
+        help="IP address of the remote OpenFlow controller")
+
+    parser.add_argument(
+        "-p",
+        "--port",
+        type=int,
+        default=6633,
+        help="Port number of the remote OpenFlow controller")
+
+    args = parser.parse_args()
+
     mininet.log.setLogLevel("info")
 
     net = mininet.net.Mininet(
@@ -52,7 +70,8 @@ def main():
         controller=None)
 
     net.addController(
-        ip="127.0.0.1",
+        ip=args.address,
+        port=args.port,
         controller=mininet.node.RemoteController)
 
     set_traffic_generators(net)

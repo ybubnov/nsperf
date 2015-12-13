@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 import argparse
+import random
 import os
 
 import mininet
@@ -36,11 +37,18 @@ def set_traffic_generators(network):
     """
     cmd = ("nsperf -t PTR "
            "--local-address 10.0.0.{0} "
-           "--remote-address 10.0.0.254 &")
+           "--remote-address 10.0.0.{1} &")
+
+    def hostname(host):
+        return host.name.replace("h", "")
+
+    hostnames = set(map(hostname, network.hosts))
 
     for host in network.hosts:
-        addr = host.name.replace("h", "")
-        host.sendCmd(cmd.format(addr))
+        name = hostname(host)
+        available_hostnames = hostnames - set(name)
+        remote_hostname = random.choice(list(available_hostnames))
+        host.sendCmd(cmd.format(name, remote_hostname))
 
 
 def main():
